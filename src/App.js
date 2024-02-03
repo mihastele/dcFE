@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import {useEffect, useState} from "react";
-import { z } from 'zod';
+import {z} from 'zod';
 
 function App() {
 
@@ -18,9 +18,19 @@ function App() {
     const [installments, setInstallments] = useState('');
     const [otherInfo, setOtherInfo] = useState('');
 
+    const [tableData, setTableData] = useState([]);
+
     const currentDate = new Date();
     const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
 
+
+    const fetchdata = () => {
+        fetch('http://localhost:8080/api/feature/dww-entries')
+            .then(response => response.json())
+            .then(data => {
+                setTableData(data);
+            }).catch(error => console.error(error));
+    }
 
     useEffect(() => {
         fetch('http://localhost:8080/api/feature/stores')
@@ -30,6 +40,8 @@ function App() {
                 setStoreAddress(data[0].storeAddress);
                 setStorePhoneNumber(data[0].storePhoneNumber);
             }).catch(error => console.error(error));
+
+        fetchdata();
     }, []);
 
 
@@ -57,7 +69,6 @@ function App() {
         e.preventDefault();
 
         const dataSchema = z.object({
-            storeId: z.string(),
             date: z.date(),
             servedBy: z.string(),
             email: z.string().email(),
@@ -71,7 +82,9 @@ function App() {
         });
 
         const data = {
-            storeId: document.querySelector('select').value,
+            store: {
+                storeName: document.querySelector('select').value
+            },
             date: currentDate,
             servedBy,
             email,
@@ -107,6 +120,8 @@ function App() {
             .then(data => {
                 console.log('Success:', data);
                 resetFields();
+
+                fetchdata();
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -171,7 +186,7 @@ function App() {
                         </div>
                         <div className="w-33 d-flex flex-column ps-2 py-2">
                             <label className="text-start">Sport package is</label>
-                            <input type="date"  value={sportPackage} onChange={(e) => setSportPackage(e.target.value)}/>
+                            <input type="date" value={sportPackage} onChange={(e) => setSportPackage(e.target.value)}/>
                         </div>
                     </div>
                 </div>
@@ -179,7 +194,8 @@ function App() {
                     <div className="d-flex w-100">
                         <div className="w-33 d-flex flex-column pe-2 py-2">
                             <label className="text-start">Monthly charge</label>
-                            <input placeholder="£" value={monthlyCharge} onChange={(e) => setMonthlyCharge(e.target.value)}/>
+                            <input placeholder="£" value={monthlyCharge}
+                                   onChange={(e) => setMonthlyCharge(e.target.value)}/>
                         </div>
                         <div className="w-33 d-flex flex-column px-2 py-2">
                             <label className="text-start">Upfront fee</label>
@@ -187,7 +203,7 @@ function App() {
                         </div>
                         <div className="w-33 d-flex flex-column ps-2 py-2">
                             <label className="text-start">Installments of payments</label>
-                            <select  value={installments} onChange={(e) => setInstallments(e.target.value)}>
+                            <select value={installments} onChange={(e) => setInstallments(e.target.value)}>
                                 <option value={1}>1</option>
                                 <option value={2}>2</option>
                                 <option value={3}>3</option>
@@ -206,6 +222,51 @@ function App() {
                 <input onClick={resetFields} type="button" value="Reset"/>
                 <input type="submit" value="Submit"/>
             </form>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Store Name</th>
+                    <th>Store Address</th>
+                    <th>Store Phone Number</th>
+                    <th>Date</th>
+                    <th>Served By</th>
+                    <th>Email</th>
+                    <th>BT Broadband</th>
+                    <th>BT TV Package</th>
+                    <th>Sport Package</th>
+                    <th>Monthly Charge</th>
+                    <th>Upfront Fee</th>
+                    <th>Installments</th>
+                    <th>Other Info</th>
+                    <th>Total Cost</th>
+                </tr>
+                </thead>
+                <tbody>
+                {
+                    tableData.map((data, index) => {
+                        return (
+                            <tr key={index}>
+                                <td>{data.store?.storeName}</td>
+                                <td>{data.store?.storeAddress}</td>
+                                <td>{data.store?.storePhoneNumber}</td>
+                                <td>{data.date}</td>
+                                <td>{data.servedBy}</td>
+                                <td>{data.email}</td>
+                                <td>{data.btBroadband}</td>
+                                <td>{data.btTvPackage}</td>
+                                <td>{data.sportPackage}</td>
+                                <td>{data.monthlyCharge}</td>
+                                <td>{data.upfrontFee}</td>
+                                <td>{data.installmentsOfPayment}</td>
+                                <td>{data.otherHandyInfo}</td>
+                                <td>{data.totalContractCost}</td>
+                            </tr>
+                        )
+                    })
+                }
+                </tbody>
+            </table>
         </div>
     );
 }
