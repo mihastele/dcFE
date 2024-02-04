@@ -97,6 +97,11 @@ function App() {
             otherHandyInfo: otherInfo
         }
 
+        // cleaner than if using useState('1')
+        if(data.installmentsOfPayment <= 0) {
+            data.installmentsOfPayment = 1;
+        }
+
         console.log(data)
         console.log(JSON.stringify(data));
         // return;
